@@ -1,0 +1,5 @@
+/CDC/output
+*.exe
+/dotnet
+.vscode
+dotnet.docx
