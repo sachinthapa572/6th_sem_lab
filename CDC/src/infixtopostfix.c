@@ -1,151 +1,126 @@
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
-#define MAX 100
+#define MAX_SIZE 100
 
-char stack[MAX];
-int top = -1;
-
-void push(char c)
+// Stack implementation
+struct Stack
 {
-    if (top == MAX - 1)
-    {
-        printf("Error: Stack overflow\n");
-        exit(1);
-    }
-    stack[++top] = c;
+    int top;
+    char items[MAX_SIZE];
+};
+
+void initialize(struct Stack *s)
+{
+    s->top = -1;
 }
 
-char pop()
+int isEmpty(struct Stack *s)
 {
-    if (top == -1)
-    {
-        printf("Error: Stack underflow\n");
-        exit(1);
-    }
-    return stack[top--];
+    return s->top == -1;
 }
 
-int precedence(char c)
+void push(struct Stack *s, char value)
 {
-    if (c == '^')
-        return 3;
-    if (c == '*' || c == '/')
-        return 2;
-    if (c == '+' || c == '-')
+    if (s->top == MAX_SIZE - 1)
+    {
+        printf("Stack Overflow\n");
+        return;
+    }
+    s->items[++(s->top)] = value;
+}
+
+char pop(struct Stack *s)
+{
+    if (isEmpty(s))
+    {
+        printf("Stack Underflow\n");
+        return '\0';
+    }
+    return s->items[(s->top)--];
+}
+
+char peek(struct Stack *s)
+{
+    if (isEmpty(s))
+        return '\0';
+    return s->items[s->top];
+}
+
+int precedence(char op)
+{
+    switch (op)
+    {
+    case '+':
+    case '-':
         return 1;
-    return -1;
-}
-
-int isOperator(char c)
-{
-    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
-}
-
-// Basic validation of infix expression
-int isValidInfix(const char *infix)
-{
-    int len = strlen(infix);
-    int paren_count = 0;
-
-    for (int i = 0; i < len; i++)
-    {
-        if (isspace(infix[i]))
-            continue; // Skip spaces
-        if (!(isalnum(infix[i]) || isOperator(infix[i]) || infix[i] == '(' || infix[i] == ')'))
-        {
-            printf("Error: Invalid character '%c'\n", infix[i]);
-            return 0;
-        }
-        if (infix[i] == '(')
-            paren_count++;
-        if (infix[i] == ')')
-            paren_count--;
-        if (paren_count < 0)
-        {
-            printf("Error: Unmatched closing parenthesis\n");
-            return 0;
-        }
-        // Check for consecutive operators
-        if (isOperator(infix[i]) && i + 1 < len && isOperator(infix[i + 1]))
-        {
-            printf("Error: Consecutive operators at position %d\n", i);
-            return 0;
-        }
+    case '*':
+    case '/':
+        return 2;
+    case '^':
+        return 3;
+    default:
+        return -1;
     }
-    if (paren_count != 0)
-    {
-        printf("Error: Unmatched opening parenthesis\n");
-        return 0;
-    }
-    return 1;
 }
 
-void infixToPostfix(const char *infix, char *postfix)
+void infixToPostfix(char *infix, char *postfix)
 {
+    struct Stack s;
+    initialize(&s);
     int i, j = 0;
-    for (i = 0; infix[i] != '\0'; i++)
+
+    for (i = 0; infix[i]; i++)
     {
-        if (isspace(infix[i]))
-            continue; // Skip  spaces
         if (isalnum(infix[i]))
         {
             postfix[j++] = infix[i];
         }
         else if (infix[i] == '(')
         {
-            push(infix[i]);
+            push(&s, infix[i]);
         }
         else if (infix[i] == ')')
         {
-            while (top != -1 && stack[top] != '(')
+            while (!isEmpty(&s) && peek(&s) != '(')
             {
-                postfix[j++] = pop();
+                postfix[j++] = pop(&s);
             }
-            if (top == -1)
+            if (!isEmpty(&s) && peek(&s) == '(')
             {
-                printf("Error: Mismatched parentheses\n");
-                exit(1);
+                pop(&s); // Remove '('
             }
-            pop(); // Remove '('
         }
-        else if (isOperator(infix[i]))
+        else
         {
-            while (top != -1 && stack[top] != '(' && precedence(stack[top]) >= precedence(infix[i]))
+            while (!isEmpty(&s) && precedence(infix[i]) <= precedence(peek(&s)))
             {
-                postfix[j++] = pop();
+                postfix[j++] = pop(&s);
             }
-            push(infix[i]);
+            push(&s, infix[i]);
         }
     }
-    while (top != -1)
+
+    while (!isEmpty(&s))
     {
-        if (stack[top] == '(')
-        {
-            printf("Error: Mismatched parentheses\n");
-            exit(1);
-        }
-        postfix[j++] = pop();
+        postfix[j++] = pop(&s);
     }
+
     postfix[j] = '\0';
 }
 
 int main()
 {
-    char infix[MAX], postfix[MAX];
-    printf("Enter infix expression: ");
-    fgets(infix, MAX, stdin);
-    infix[strcspn(infix, "\n")] = '\0'; // Remove newline
+    char infix[MAX_SIZE], postfix[MAX_SIZE];
 
-    if (!isValidInfix(infix))
-    {
-        printf("Invalid infix expression\n");
-        return 1;
-    }
+    printf("Enter infix expression: ");
+    scanf("%s", infix);
 
     infixToPostfix(infix, postfix);
+
     printf("Postfix expression: %s\n", postfix);
+
     return 0;
 }

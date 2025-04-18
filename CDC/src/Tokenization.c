@@ -3,17 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-// List of keywords
 const char *keywords[] = {"int", "float", "if", "else", "while", "for", "return"};
 const int num_keywords = 7;
 
-// List of operators
 const char *operators = "+-*/=";
 
-// List of special symbols
 const char *special_symbols = "{}();,";
 
-// Function to check if a string is a keyword
 int is_keyword(const char *str)
 {
     for (int i = 0; i < num_keywords; i++)
@@ -26,7 +22,6 @@ int is_keyword(const char *str)
     return 0;
 }
 
-// Function to check if a character is an operator
 int is_operator(char ch)
 {
     for (int i = 0; operators[i] != '\0'; i++)
@@ -39,7 +34,6 @@ int is_operator(char ch)
     return 0;
 }
 
-// Function to check if a character is a special symbol
 int is_special_symbol(char ch)
 {
     for (int i = 0; special_symbols[i] != '\0'; i++)
@@ -52,7 +46,6 @@ int is_special_symbol(char ch)
     return 0;
 }
 
-// Function to tokenize the input string
 void tokenize(const char *input)
 {
     int i = 0;
@@ -60,7 +53,6 @@ void tokenize(const char *input)
 
     while (input[i] != '\0')
     {
-        // Skip whitespace
         while (isspace(input[i]))
         {
             i++;
@@ -71,7 +63,6 @@ void tokenize(const char *input)
 
         int token_pos = 0;
 
-        // Check for identifiers or keywords
         if (isalpha(input[i]) || input[i] == '_')
         {
             token[token_pos++] = input[i++];
@@ -90,7 +81,6 @@ void tokenize(const char *input)
                 printf("Identifier: %s\n", token);
             }
         }
-        // Check for numbers
         else if (isdigit(input[i]))
         {
             token[token_pos++] = input[i++];
@@ -101,7 +91,6 @@ void tokenize(const char *input)
             token[token_pos] = '\0';
             printf("Number: %s\n", token);
         }
-        // Check for operators
         else if (is_operator(input[i]))
         {
             token[0] = input[i];
@@ -109,7 +98,6 @@ void tokenize(const char *input)
             printf("Operator: %c\n", input[i]);
             i++;
         }
-        // Check for special symbols
         else if (is_special_symbol(input[i]))
         {
             token[0] = input[i];
@@ -117,7 +105,6 @@ void tokenize(const char *input)
             printf("Special Symbol: %c\n", input[i]);
             i++;
         }
-        // Handle invalid characters
         else
         {
             printf("Invalid character: %c\n", input[i]);
@@ -128,7 +115,6 @@ void tokenize(const char *input)
 
 int main()
 {
-    // Example input string
     const char *code = "int main() { int a = 5; if (a == 5) return a; }";
     printf("\nTokenized Output:\n");
     tokenize(code);

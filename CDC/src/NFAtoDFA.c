@@ -33,10 +33,10 @@ int compare_sets(int *a, int a_size, int *b, int b_size)
     return 1;
 }
 
-int set_in_dfa_states(int dfa_state_sets[1 << STATES][STATES], int *set, int size)
+int set_in_dfa_states(int dfa_state_sets[1 << STATES][STATES], int dfa_set_sizes[1 << STATES], int *set, int size)
 {
     for (int i = 0; i < dfa_states; i++)
-        if (compare_sets(dfa_state_sets[i], STATES, set, size))
+        if (compare_sets(dfa_state_sets[i], dfa_set_sizes[i], set, size))
             return i;
     return -1;
 }
@@ -46,7 +46,7 @@ void convert_nfa_to_dfa()
     int dfa_state_sets[1 << STATES][STATES] = {0};
     int dfa_set_sizes[1 << STATES] = {0};
 
-    dfa_state_sets[0][0] = 0; // Start with NFA state 0
+    dfa_state_sets[0][0] = 0;
     dfa_set_sizes[0] = 1;
     dfa_states = 1;
 
@@ -54,7 +54,9 @@ void convert_nfa_to_dfa()
     {
         for (int s = 0; s < SYMBOLS; s++)
         {
-            int new_set[STATES] = {0}, new_size = 0;
+            int new_set[STATES] = {0};
+            int new_size = 0;
+
             for (int j = 0; j < dfa_set_sizes[i]; j++)
             {
                 int nfa_state = dfa_state_sets[i][j];
@@ -64,7 +66,14 @@ void convert_nfa_to_dfa()
                         new_size = add_state(new_set, new_size, k);
                 }
             }
-            int existing = set_in_dfa_states(dfa_state_sets, new_set, new_size);
+
+            if (new_size == 0)
+            {
+                dfa[i][s] = -1; // dead state
+                continue;
+            }
+
+            int existing = set_in_dfa_states(dfa_state_sets, dfa_set_sizes, new_set, new_size);
             if (existing == -1)
             {
                 for (int j = 0; j < new_size; j++)
@@ -87,14 +96,23 @@ void print_dfa()
     printf("State | 0 | 1\n");
     printf("--------------\n");
     for (int i = 0; i < dfa_states; i++)
-        printf("  %d   | %d | %d\n", i, dfa[i][0], dfa[i][1]);
+    {
+        printf("  %d   |", i);
+        for (int s = 0; s < SYMBOLS; s++)
+        {
+            if (dfa[i][s] == -1)
+                printf(" - |");
+            else
+                printf(" %d |", dfa[i][s]);
+        }
+        printf("\n");
+    }
 }
 
 int main()
 {
     nfa_states = 3;
 
-    // Example NFA
     // State 0 --0--> 0,1
     nfa[0][0][0] = 1;
     nfa[0][0][1] = 1;
